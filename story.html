@@ -6,182 +6,72 @@
     <title>Our Story | Joe's Rides</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --neon-blue: #00d4ff;
-            --neon-purple: #9d50bb;
-            --dark-bg: #0f172a;
-            --glass: rgba(15, 23, 42, 0.85); /* Darker glass for better contrast */
-            --gradient: linear-gradient(45deg, #2563eb, #7c3aed);
-        }
+    :root {
+        --neon-blue: #00d4ff;
+        --neon-purple: #9d50bb;
+        --dark-bg: #0f172a;
+        --glass: rgba(15, 23, 42, 0.85); 
+        --gradient: linear-gradient(45deg, #2563eb, #7c3aed);
+    }
 
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--dark-bg);
+        /* Optimized Background */
+        background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('joesrideswithseltos.jpg');
+        background-size: cover;
+        background-position: center center;
+        background-attachment: fixed;
+        color: white;
+        line-height: 1.8;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Mobile Background Fix */
+    @media (max-width: 768px) {
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--dark-bg);
-            /* Adds the branding image as a fixed background with a dark tint */
-            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('joesrideswithseltos.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: white;
-            line-height: 1.8;
-            margin: 0;
-            overflow-x: hidden;
+            background-attachment: scroll; /* Prevents jumping/glitching on mobile */
         }
+    }
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 60px 40px;
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 40px 20px; /* Added side padding for mobile */
+    }
 
-        .back-btn {
-            display: inline-block;
-            margin-bottom: 30px;
-            color: var(--neon-blue);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .story-card {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+    }
 
-        .story-header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
+    /* Responsive Grid Fix */
+    .experience-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Automatically stacks on mobile */
+        gap: 20px;
+        margin-top: 30px;
+    }
 
-        .story-header h1 {
-            font-size: clamp(2.5rem, 8vw, 3.5rem);
-            font-weight: 800;
-            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-            letter-spacing: -1.5px;
-        }
+    .exp-card {
+        background: rgba(255,255,255,0.05);
+        padding: 25px;
+        border-radius: 15px;
+        border-left: 4px solid var(--neon-blue);
+        transition: transform 0.3s ease;
+    }
 
-        .tagline {
-            font-size: 1.3rem;
-            color: #cbd5e1;
-            font-weight: 300;
-            letter-spacing: 1.5px;
-        }
-
-        .photo-showcase {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 60px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .photo-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-        }
-
-        .photo-card img {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-            /* Keeps the top of the photo visible so heads/ears aren't cut off */
-            object-position: top; 
-            display: block;
-        }
-
-        .photo-caption {
-            padding: 15px;
-            font-weight: 600;
-            color: var(--neon-purple);
-            font-size: 0.95rem;
-        }
-
-        .story-content {
-            max-width: 750px;
-            margin: 0 auto;
-        }
-
-        .family-highlight {
-            border-left: 4px solid var(--neon-blue);
-            padding: 10px 0 10px 30px;
-            margin-bottom: 40px;
-        }
-
-        .family-highlight h2 {
-            font-size: 2rem;
-            color: white;
-            margin-bottom: 10px;
-        }
-
-        .story-text p {
-            margin-bottom: 25px;
-            font-size: 1.15rem;
-            color: #cbd5e1;
-        }
-
-        .experience-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 60px;
-        }
-
-        .exp-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .exp-card h3 {
-            color: var(--neon-blue);
-            margin-bottom: 10px;
-            font-size: 1.3rem;
-        }
-
-        .exp-card p {
-            font-size: 1rem;
-            color: #a7b3c1;
-        }
-
-        .cta-section {
-            text-align: center;
-            margin-top: 100px;
-            padding: 50px 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-home {
-            background: var(--gradient);
-            color: white;
-            padding: 16px 45px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 700;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
-        }
-
-        .btn-home:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 25px rgba(0, 212, 255, 0.4);
-        }
-
-    </style>
+    /* Image Scaling for inner images if added later */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
 </head>
 <body>
 
