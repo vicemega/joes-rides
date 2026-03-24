@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ben's Bumper Buster | Master Core V5.1</title>
+    <title>Ben's Bumper Buster | Master Core V5.2 Verified</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { --theme-color: #00d4ff; --neon-red: #ff3131; --neon-green: #39ff14; --pass-blue: #00f3ff; --heart-pink: #ff69b4; }
@@ -20,11 +20,9 @@
         .swatch.active { border-color: #00d4ff; transform: scale(1.1); box-shadow: 0 0 15px #00d4ff; }
         #pit-stop-ui { position: absolute; inset: 0; background: rgba(0,0,0,0.96); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 90; font-family: 'Orbitron', sans-serif; color: var(--theme-color); border: 4px solid var(--theme-color); margin: 20px; border-radius: 15px; padding: 20px; text-align: center; }
         .score-row { display: flex; justify-content: space-between; width: 80%; font-size: 0.75rem; margin: 5px 0; color: #fff; }
-        
-        #nitro-btn, #horn-btn { position: absolute; width: 65px; height: 65px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.6); font-family: 'Orbitron', sans-serif; display: none; align-items: center; justify-content: center; z-index: 50; cursor: pointer; font-size: 0.6rem; backdrop-filter: blur(2px); }
+        #nitro-btn, #horn-btn { position: absolute; width: 65px; height: 65px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.6); font-family: 'Orbitron', sans-serif; display: none; align-items: center; justify-content: center; z-index: 50; cursor: pointer; font-size: 0.6rem; backdrop-filter: blur(2px); touch-action: manipulation; }
         #nitro-btn { bottom: 25px; right: 25px; background: rgba(239, 68, 68, 0.4); }
         #horn-btn { bottom: 25px; left: 25px; background: rgba(37, 99, 235, 0.4); }
-
         @media (pointer: coarse) { #nitro-btn, #horn-btn { display: flex; } }
         .btn-main { background: #2563eb; color: white; border: none; padding: 18px 45px; font-family: 'Orbitron', sans-serif; border-radius: 8px; cursor: pointer; width: 85%; font-size: 1rem; letter-spacing: 2px; }
     </style>
@@ -134,12 +132,11 @@
         if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
-    // 8-BIT MUSIC ENGINE (Spy Hunter Style)
     function startMusic() {
         let step = 0;
-        const bass = [55, 55, 65, 55, 82, 55, 73, 55]; // A1, C2, E2, D2 relative drive
+        const bass = [55, 55, 65, 55, 82, 55, 73, 55];
         const lead = [220, 0, 220, 247, 261, 0, 261, 293];
-        
+        if(musicTimer) clearInterval(musicTimer);
         musicTimer = setInterval(() => {
             if(!gameActive || inPitStop) return;
             playTone(bass[step % bass.length], 0.1, 'square', 0.05);
@@ -206,12 +203,12 @@
     }
 
     canvas.addEventListener('touchstart', (e) => {
-        if(!gameActive) return;
+        if(!gameActive) return; e.preventDefault();
         const touchX = e.touches[0].clientX;
         if(touchX < window.innerWidth / 2) touchSteer = -1;
         else touchSteer = 1;
-    });
-    canvas.addEventListener('touchend', () => { touchSteer = 0; });
+    }, {passive: false});
+    canvas.addEventListener('touchend', (e) => { e.preventDefault(); touchSteer = 0; }, {passive: false});
 
     function drawCar(x, y, color, isPlayer) {
         if (isPlayer) {
@@ -246,34 +243,27 @@
 
     function update(dt) {
         if(inPitStop || !gameActive) return;
+        const norm = dt / 16.67; // Normalize to 60fps base
         let steer = 0;
         if (keys['ArrowLeft'] || keys['KeyA']) steer = -1;
         if (keys['ArrowRight'] || keys['KeyD']) steer = 1;
         if (touchSteer !== 0) steer = touchSteer;
-
-        player.x = Math.max(20, Math.min(400, player.x + steer * 6.5));
-
+        player.x = Math.max(20, Math.min(400, player.x + steer * 6.5 * norm));
         const roadStart = 80, roadEnd = 370;
         if (player.x < roadStart || (player.x + player.w) > roadEnd) {
             if (!onSidewalk) { score = Math.max(0, score - 4); penaltyGain.gain.setTargetAtTime(0.05, audioCtx.currentTime, 0.05); onSidewalk = true; }
             sidewalkTimer += dt; if (sidewalkTimer >= 1000) { score = Math.max(0, score - 3); sidewalkTimer = 0; }
         } else { onSidewalk = false; sidewalkTimer = 0; penaltyGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1); }
-
-        totalMiles += (speed / 180); let curM = Math.floor(totalMiles);
+        totalMiles += (speed * norm / 180); let curM = Math.floor(totalMiles);
         let milesInLevel = totalMiles - milesAtStartOfLevel;
         let milesLeft = milesPerLevel - milesInLevel;
-
-        if (milesLeft <= 1 && milesLeft > 0) {
-            isInvincible = true; obstacles = []; spawnVictoryHearts(); speed = Math.max(0.05, speed * 0.998); 
-        } else { isInvincible = false; }
-
+        if (milesLeft <= 1 && milesLeft > 0) { isInvincible = true; obstacles = []; spawnVictoryHearts(); speed = Math.max(0.05, speed * Math.pow(0.998, norm)); } else { isInvincible = false; }
         if (curM > lastMileChecked) { score += 10; lastMileChecked = curM; }
         milesEl.innerText = curM; speedEl.innerText = Math.floor(speed * 35); scoreEl.innerText = score;
-        lineOffset = (lineOffset + speed * 4) % 40;
-
+        lineOffset = (lineOffset + speed * 4 * norm) % 40;
         if (milesLeft <= 0.05 && finishLineY < -1000) finishLineY = -150;
         if (finishLineY > -1000) {
-            finishLineY += speed * 2;
+            finishLineY += speed * 2 * norm;
             if (finishLineY > 550 && !inPitStop) {
                 inPitStop = true; speed = 0; playWinFanfare(); saveRecords();
                 pitUI.style.display = 'flex';
@@ -293,23 +283,20 @@
                 }, 1000);
             }
         }
-
         if (finishLineY < -500 && !isInvincible) {
-            lastSpawnY += speed * 2;
+            lastSpawnY += speed * 2 * norm;
             if(lastSpawnY > 300) { obstacles.push({x: 98 + (Math.floor(Math.random() * 4) * 72), y: -100, color: trafficColors[Math.floor(Math.random()*trafficColors.length)], speedMult: 1.1 + (Math.random() * 0.6)}); lastSpawnY = 0; }
         }
-
         obstacles.forEach((o, i) => { 
-            o.y += speed * o.speedMult; 
+            o.y += speed * o.speedMult * norm; 
             if(o.y > 750) obstacles.splice(i, 1); 
             if(!isInvincible && player.x < o.x+28 && player.x+player.w > o.x+2 && player.y < o.y+55 && player.y+player.h > o.y+5) { 
                 gameActive = false; saveRecords(); overlay.style.display = 'flex'; document.getElementById('msg').innerText = "WRECKED!"; 
             } 
         });
-
-        hearts.forEach((h) => { h.y += speed * 2.2; if(!h.collected && player.x < h.x+20 && player.x+player.w > h.x-20 && player.y < h.y+20 && player.y+player.h > h.y-20) { h.collected = true; score += 2; playDing(); } });
-        passengers.forEach((p, i) => { p.y += speed * 2.2; if(player.x < p.x+15 && player.x+player.w > p.x-15 && player.y < p.y+15 && player.y+player.h > p.y-15) { passengersCollected++; passCountEl.innerText = passengersCollected; score += 5; playDing(); passengers.splice(i, 1); if(passengersCollected % 5 === 0) pickups.push({x: 115 + (Math.floor(Math.random() * 4) * 72), y: -100}); } });
-        pickups.forEach((pk, i) => { pk.y += speed * 2.2; if(player.x < pk.x+16 && player.x+player.w > pk.x-16 && player.y < pk.y+16 && player.y+player.h > pk.y-16) { nitros++; nitroCountEl.innerText = nitros; pickups.splice(i, 1); } });
+        hearts.forEach((h) => { h.y += speed * 2.2 * norm; if(!h.collected && player.x < h.x+20 && player.x+player.w > h.x-20 && player.y < h.y+20 && player.y+player.h > h.y-20) { h.collected = true; score += 2; playDing(); } });
+        passengers.forEach((p, i) => { p.y += speed * 2.2 * norm; if(player.x < p.x+15 && player.x+player.w > p.x-15 && player.y < p.y+15 && player.y+player.h > p.y-15) { passengersCollected++; passCountEl.innerText = passengersCollected; score += 5; playDing(); passengers.splice(i, 1); if(passengersCollected % 5 === 0) pickups.push({x: 115 + (Math.floor(Math.random() * 4) * 72), y: -100}); } });
+        pickups.forEach((pk, i) => { pk.y += speed * 2.2 * norm; if(player.x < pk.x+16 && player.x+player.w > pk.x-16 && player.y < pk.y+16 && player.y+player.h > pk.y-16) { nitros++; nitroCountEl.innerText = nitros; pickups.splice(i, 1); } });
         if(Math.random() < 0.008 && !isInvincible) passengers.push({x: 115 + (Math.floor(Math.random() * 4) * 72), y: -100});
     }
 
@@ -319,10 +306,8 @@
         ctx.fillStyle = '#222'; ctx.fillRect(80, 0, 290, baseHeight);
         ctx.strokeStyle = '#fff5'; ctx.lineWidth = 2; ctx.setLineDash([20,20]); ctx.lineDashOffset = -lineOffset;
         ctx.beginPath(); for(let i=1; i<4; i++) { ctx.moveTo(80+i*72, 0); ctx.lineTo(80+i*72, baseHeight); } ctx.stroke(); ctx.setLineDash([]);
-        
         obstacles.forEach(o => drawCar(o.x, o.y, o.color, false));
         drawCar(player.x, player.y, playerColor, true); 
-
         hearts.forEach(h => {
             if(h.collected) return;
             ctx.fillStyle = '#ff69b4'; ctx.shadowBlur = 15; ctx.shadowColor = '#ff69b4'; ctx.beginPath();
@@ -330,13 +315,11 @@
             ctx.bezierCurveTo(h.x - 15, h.y + 25, h.x, h.y + 30, h.x, h.y + 40); ctx.bezierCurveTo(h.x, h.y + 30, h.x + 15, h.y + 25, h.x + 15, h.y + 10);
             ctx.bezierCurveTo(h.x + 15, h.y, h.x, h.y, h.x, h.y + 10); ctx.fill(); ctx.shadowBlur = 0;
         });
-
         passengers.forEach(p => { 
             ctx.fillStyle = '#00f3ff'; ctx.shadowBlur = 10; ctx.shadowColor = '#00f3ff'; ctx.beginPath(); ctx.arc(p.x, p.y-22, 5, 0, Math.PI*2); ctx.fill();
             ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x, p.y-17); ctx.lineTo(p.x, p.y-5);
             ctx.moveTo(p.x-6, p.y-13); ctx.lineTo(p.x+6, p.y-13); ctx.moveTo(p.x, p.y-5); ctx.lineTo(p.x-5, p.y+5); ctx.moveTo(p.x, p.y-5); ctx.lineTo(p.x+5, p.y+5); ctx.stroke(); ctx.shadowBlur = 0;
         });
-
         pickups.forEach(pk => { 
             ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(pk.x, pk.y, 14, 0, Math.PI*2); ctx.fill(); 
             ctx.fillStyle="#fff"; ctx.font="bold 8px Orbitron, sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("N2O", pk.x, pk.y);
@@ -344,7 +327,7 @@
     }
 
     function gameLoop(timestamp) {
-        if(gameActive) { let dt = timestamp - lastTime; if(dt > 100) dt = 16; lastTime = timestamp; update(dt); draw(); requestAnimationFrame(gameLoop); }
+        if(gameActive) { let dt = timestamp - lastTime; if(dt > 100) dt = 16.67; lastTime = timestamp; update(dt); draw(); requestAnimationFrame(gameLoop); }
     }
 
     let lastTime = 0;
